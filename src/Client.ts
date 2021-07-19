@@ -1,3 +1,4 @@
+import { GatewayIdentifyData, GatewayPresenceUpdateData } from 'discord-api-types';
 import {gateway} from './gateway/gateway'
 import {restAPI} from './rest/restAPI';
 import {RestError} from './rest/RestError';
@@ -15,6 +16,8 @@ export class Client {
     public isABot: boolean = true;
 
     public setAllToCache: boolean = false; 
+
+    public presence?: GatewayPresenceUpdateData;
 
     private readonly _restAPI: restAPI;
 
@@ -37,6 +40,14 @@ export class Client {
         }
     }
 
+    get token(): string{
+        return this._token;
+    }
+
+    get restAPI(){
+        return this._restAPI;
+    }
+
     public connect(){
         this._restAPI.sendRequest('GET', '/gateway/bot').then((request) => {
             if(request instanceof RestError && request.code == 403) throw new Error('An invalid token was provided!')
@@ -45,11 +56,8 @@ export class Client {
         })
     }
 
-    get token(): string{
-        return this._token;
+    public setPresence(data: GatewayPresenceUpdateData){
+        this.presence = data;
     }
 
-    get restAPI(){
-        return this._restAPI;
-    }
 }

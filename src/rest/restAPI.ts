@@ -22,8 +22,7 @@ export class restAPI{
                 method: method, 
                 data: data
             }).catch((e) => {
-                console.log(e)
-                return reject(new RestError(e.data.code, `API ERROR: ${e.data.code} => ${e.data.message}`))
+                return reject(new RestError(e.response.data.code, `API ERROR: ${e.response.data.message}`))
             })
             if(response) resolve(response.data)
             else reject(new Error('No response from api'))
