@@ -1,0 +1,27 @@
+{
+  "name": "ts-scord",
+  "version": "1.0.0",
+  "description": "A node module who interacts with Discord API. It's developped in Typescript",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "exec": "ts-node test/index.ts"
+  },
+  "author": "Nerzox",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^15.0.1",
+    "@types/ws": "^7.4.6",
+    "axios": "^0.21.1",
+    "node": "^16.4.0",
+    "ws": "^7.5.3"
+  },
+  "devDependencies": {
+    "discord-api-types": "^0.18.1",
+    "i": "^0.3.6",
+    "npm": "^7.19.1",
+    "prettier": "2.3.0",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.3.5"
+  }
+}
