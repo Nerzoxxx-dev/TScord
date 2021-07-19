@@ -1,7 +1,7 @@
 import { PresenceUpdateStatus } from 'discord-api-types';
 import {Client} from '../src/Client';
 
-const client = new Client('token', [])
+const client = new Client('uwu', [])
 
 client.setPresence({
     since: Date.now(),

@@ -3,7 +3,6 @@ import {GATEWAY_BASE_URL, GATEWAY_ENCODING, GATEWAY_VERSION} from "../rest/EndPo
 import {GatewayIdentifyData, GatewayReceivePayload} from "discord-api-types";
 import {HELLO, HEARTBEAT, HEARTBEAT_ACK, GATEWAY_IDENTIFY} from './OPCodes';
 import WebSocket = require('ws')
-import { platform } from "node:os";
 
 export class gateway {
 
