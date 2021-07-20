@@ -1,16 +1,24 @@
 import { Client } from "../Client";
 import {GATEWAY_BASE_URL, GATEWAY_ENCODING, GATEWAY_VERSION} from "../rest/EndPoint";
-import {GatewayIdentifyData, GatewayReceivePayload} from "discord-api-types";
-import {HELLO, HEARTBEAT, HEARTBEAT_ACK, GATEWAY_IDENTIFY} from './OPCodes';
+import {GatewayDispatchPayload, 
+        GatewayIdentifyData, 
+        GatewayReceivePayload} from "discord-api-types";
+import {HELLO, HEARTBEAT, 
+        HEARTBEAT_ACK, GATEWAY_IDENTIFY, 
+        DISPATCH, READY} from './OPCodes';
 import WebSocket = require('ws')
 
-export class gateway {
+export class Gateway {
 
     private _ws?: WebSocket;
 
     private _isEnabled: boolean;
 
     private _heartbeat_interval: number;
+
+    private _last_heartbeat?: number;
+
+    private _last_heartbeat_ack?: number;
 
     private _sequence?: number;
 
@@ -19,6 +27,7 @@ export class gateway {
     public heartbeat(){
         if(this._sequence) this.sendToWS(HEARTBEAT, this._sequence)
         else this.sendToWS(HEARTBEAT, null)
+        this._last_heartbeat = Date.now()
         setInterval(() => {
             this.heartbeat()
         }, this._heartbeat_interval)
@@ -27,7 +36,7 @@ export class gateway {
     public identify(){
         var data: GatewayIdentifyData = {
             token: this._client.token,
-            intents: 513,
+            intents: this._client.intents,
             properties: {
                 $os: process.platform,
                 $browser: "ts-scord",
@@ -47,6 +56,14 @@ export class gateway {
         this.initWs(wsUrl)
     }
 
+    public handleEvent(message: GatewayDispatchPayload){
+        switch(message.t){
+            case READY:
+                //ToDo: Use event function
+                break;
+        }
+    }
+
     private initWs(wsUrl?: string){
         //currently, v=9 & encoding=json
         this._ws = new WebSocket(`${wsUrl}/?v=${GATEWAY_VERSION}&encoding=${GATEWAY_ENCODING}`);
@@ -57,11 +74,10 @@ export class gateway {
     }
 
     private onWsOpen() {
-        //console.log('hello')
     }
 
     private onWsMessage(msg: string){
-        const message = JSON.parse(msg) as GatewayReceivePayload
+        const message: GatewayReceivePayload = JSON.parse(msg) as GatewayReceivePayload
         if(message.s) this._sequence = message.s
         switch(message.op){
             case HELLO:
@@ -70,7 +86,10 @@ export class gateway {
                 this.identify();
                 break;
             case HEARTBEAT_ACK:
-                console.log('coucou')
+                this._last_heartbeat_ack = Date.now();
+                break;
+            case DISPATCH:
+                this.handleEvent(message as GatewayDispatchPayload)
         }
     }
 

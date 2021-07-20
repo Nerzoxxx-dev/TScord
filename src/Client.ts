@@ -1,7 +1,9 @@
-import { GatewayIdentifyData, GatewayPresenceUpdateData } from 'discord-api-types';
-import {gateway} from './gateway/gateway'
+import { GatewayActivityUpdateData, GatewayPresenceUpdateData, PresenceUpdateStatus } from 'discord-api-types';
+import {Gateway} from './gateway/Gateway'
 import {restAPI} from './rest/restAPI';
 import {RestError} from './rest/RestError';
+import {Utils} from './TUtils/Utils';
+import * as Intents from './Intents';
 
 interface ClientSettings{
     isABot;
@@ -11,7 +13,7 @@ interface ClientSettings{
 export class Client {
     private _token: string;
 
-    public intents: any[];
+    public intents: number;
 
     public isABot: boolean = true;
 
@@ -21,14 +23,20 @@ export class Client {
 
     private readonly _restAPI: restAPI;
 
-    private readonly _gateway: gateway;
+    private readonly _gateway: Gateway;
 
-    constructor(token: string, intents: any[], clientsettings?: ClientSettings){
+    constructor(token: string, intents: number[], clientsettings?: ClientSettings){
         this._token = 'Bot ' + token;
-        this.intents = intents;
-
         this._restAPI = new restAPI(this)
-        this._gateway = new gateway(this)
+        this._gateway = new Gateway(this)
+
+        if(Utils.hasDuplicates(intents)) throw new Error('Duplicates intents are not allowed.')
+
+        var allIntents: number = 0;
+        intents.forEach((i) => {
+            allIntents += i;
+        })
+        this.intents = allIntents;
 
         if(clientsettings){
             if(clientsettings.isABot){
@@ -56,8 +64,43 @@ export class Client {
         })
     }
 
-    public setPresence(data: GatewayPresenceUpdateData){
-        this.presence = data;
-    }
+    public setPresence(status: 'online' | 'offline' | 'dnd' | 'idle' | 'invisible', activities: GatewayActivityUpdateData[], since?: number, afk?: boolean) :any{
+        var statusType: PresenceUpdateStatus;
 
+        switch(status){
+            case 'online':
+                statusType = PresenceUpdateStatus.Online
+                break;
+            case 'offline':
+                statusType = PresenceUpdateStatus.Offline
+                break;
+            case 'dnd':
+                statusType = PresenceUpdateStatus.DoNotDisturb
+                break;
+            case 'idle':
+                statusType = PresenceUpdateStatus.Idle
+                break;
+            case 'invisible':
+                statusType = PresenceUpdateStatus.Invisible
+                break;
+        }
+
+        if(!since) since = Date.now()
+        if(!afk){
+            if(statusType == PresenceUpdateStatus.Idle){
+                afk = true
+            } else{
+                afk = false
+            }
+        }
+
+        var data: GatewayPresenceUpdateData = {
+            since: since,
+            status: statusType,
+            afk: afk,
+            activities: activities
+        }
+
+        return this.presence = data;
+    }
 }
