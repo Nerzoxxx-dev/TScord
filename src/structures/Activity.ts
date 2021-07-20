@@ -48,10 +48,10 @@ export interface Activity {
 }
 
 export interface ActivityTimestamps {
-    /** @var start? */
+    /** @var string? */
     start?: number;
 
-    /** @var end? */
+    /** @var string? */
     end?: number;
 }
 
