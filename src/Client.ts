@@ -4,6 +4,8 @@ import {restAPI} from './rest/restAPI';
 import {RestError} from './rest/RestError';
 import {Utils} from './TUtils/Utils';
 import * as Intents from './Intents';
+import { UserPresence } from './structures/User';
+import { Activity } from './Data/Activity';
 
 interface ClientSettings{
     isABot;
@@ -19,7 +21,7 @@ export class Client {
 
     public setAllToCache: boolean = false; 
 
-    public presence?: GatewayPresenceUpdateData;
+    public presence?: UserPresence;
 
     private readonly _restAPI: restAPI;
 
@@ -64,7 +66,7 @@ export class Client {
         })
     }
 
-    public setPresence(status: 'online' | 'offline' | 'dnd' | 'idle' | 'invisible', activities: GatewayActivityUpdateData[], since?: number, afk?: boolean) :any{
+    public setPresence(status: 'online' | 'offline' | 'dnd' | 'idle' | 'invisible', activities: Activity[], since?: number, afk?: boolean) :any{
         var statusType: PresenceUpdateStatus;
 
         switch(status){
@@ -94,7 +96,7 @@ export class Client {
             }
         }
 
-        var data: GatewayPresenceUpdateData = {
+        var data: UserPresence = {
             since: since,
             status: statusType,
             afk: afk,

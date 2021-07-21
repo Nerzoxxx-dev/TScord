@@ -1,12 +1,12 @@
 import { Client } from "../Client";
 import {GATEWAY_BASE_URL, GATEWAY_ENCODING, GATEWAY_VERSION} from "../rest/EndPoint";
-import {GatewayDispatchPayload, 
-        GatewayIdentifyData, 
-        GatewayReceivePayload} from "discord-api-types";
+import {GatewayDispatchPayload} from "discord-api-types";
 import {HELLO, HEARTBEAT, 
         HEARTBEAT_ACK, GATEWAY_IDENTIFY, 
         DISPATCH, READY} from './OPCodes';
 import WebSocket = require('ws')
+import { GatewayIdentifyData } from "../Data/GatewayIdentify";
+import { GatewayPayload } from "../Data/GatewayPayload";
 
 export class Gateway {
 
@@ -43,7 +43,12 @@ export class Gateway {
                 $device: "ts-scord"
             }
         }
-        if(this._client.presence) data.presence = this._client.presence
+        if(this._client.presence){
+            this._client.presence.activities.forEach((a) => {
+                if(!a.created_at) a.created_at = Date.now();
+            })
+        }
+        data.presence = this._client.presence;
         
         this.sendToWS(GATEWAY_IDENTIFY, data)
     }
@@ -60,6 +65,7 @@ export class Gateway {
         switch(message.t){
             case READY:
                 //ToDo: Use event function
+                console.log('ready!')
                 break;
         }
     }
@@ -77,7 +83,7 @@ export class Gateway {
     }
 
     private onWsMessage(msg: string){
-        const message: GatewayReceivePayload = JSON.parse(msg) as GatewayReceivePayload
+        const message: GatewayPayload = JSON.parse(msg) as GatewayPayload
         if(message.s) this._sequence = message.s
         switch(message.op){
             case HELLO:
