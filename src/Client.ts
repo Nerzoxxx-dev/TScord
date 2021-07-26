@@ -8,6 +8,7 @@ import EventEmitter from './EventEmitter/Emitter';
 import { Collection } from './TUtils/Collection';
 import { Snowflake } from 'discord-api-types';
 import { User } from './structures/User';
+import { Guild } from './structures/Guild';
 
 interface ClientSettings{
     isABot;
@@ -33,7 +34,7 @@ export class Client extends EventEmitter<{
 
     //cache
     public users: Collection<Snowflake, User>;
-    public guilds: Collection<Snowflake, User>;
+    public guilds: Collection<Snowflake, Guild>;
 
     constructor(token: string, intents: number[], clientsettings?: ClientSettings){
         super()
@@ -41,8 +42,10 @@ export class Client extends EventEmitter<{
         this.restAPI = new restAPI(this);
         this.gateway = new Gateway(this);
         this.restAPI.sendRequest('GET', CLIENT_USER).then(r => {
-            this.user = new ClientUser(this, r)
+            this.user = new ClientUser(this, r);
         })
+        this.users = new Collection<Snowflake, User>();
+        this.guilds = new Collection<Snowflake, Guild>();
 
         if(Utils.hasDuplicates(intents)) throw new Error('Duplicates intents are not allowed.')
 
@@ -72,5 +75,13 @@ export class Client extends EventEmitter<{
 
             this.gateway.connect(request.url)
         })
+    }
+
+    public fetchUser(id: Snowflake){
+        return this.users.fetch(id)
+    }
+
+    public fetchGuilds(id: Snowflake){
+        return this.guilds.fetch(id)
     }
 }

@@ -1,5 +1,5 @@
 import { Client } from "../../Client";
-import { GUILDS } from "../../rest/EndPoint";
+import { GatewayPayload } from "../../Data/GatewayPayload";
 import { Base } from "./Base";
 
 export class ready extends Base{
@@ -7,9 +7,9 @@ export class ready extends Base{
         super(client)
     }
 
-    async handle() {
-        this._client.restAPI.sendRequest('GET', GUILDS).then(r => {
-            console.log(r)
-        })
+    async handle(data: GatewayPayload) {
+        for(const guild of data.d.guilds){
+            this._client.guilds.set(guild.id, guild)
+        }
     }
 }

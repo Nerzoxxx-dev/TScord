@@ -13,10 +13,9 @@ class test {
         client.on('ready', (ready) => {
             console.log('ready!')
             client.user.setActivity([{name: 'test', type: 0}])
+            console.log(client.guilds)
+            console.log(client.guilds.fetch('869219983509573662'))
         })
-        var r = await client.restAPI.sendRequest('get', `/users/691618793696264194`);
-        var u = new User(client, r);
-        console.log(u.getAvatarUrl());
     }
 }
 

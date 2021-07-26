@@ -17,4 +17,8 @@ export class Collection<K, V> extends Map<K, V>{
 
     }
 
+    public fetch(k: K){
+        if(!this.get(k)) return [];
+        return this.get(k);
+    }
 }

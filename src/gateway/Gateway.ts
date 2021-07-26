@@ -80,7 +80,7 @@ export class Gateway {
         })
         switch(message.t){
             case READY:
-                new ready(this._client).handle()
+                new ready(this._client).handle(message)
                 this._client.emit('ready', {
                     name: message.t,
                     data: message.d
