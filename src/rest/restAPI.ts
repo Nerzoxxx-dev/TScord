@@ -1,6 +1,7 @@
 import axios, {AxiosInstance, Method} from 'axios';
 import { Client } from '../Client';
-import {REST_BASE_URL} from './EndPoint';
+import { User } from '../structures/User';
+import {AVATAR_URL, REST_BASE_URL} from './EndPoint';
 import {RestError} from './RestError';
 
 

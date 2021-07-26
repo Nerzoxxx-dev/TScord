@@ -1,36 +1,45 @@
-import { GatewayActivityUpdateData, GatewayPresenceUpdateData, PresenceUpdateStatus } from 'discord-api-types';
-import {Gateway} from './gateway/Gateway'
-import {restAPI} from './rest/restAPI';
-import {RestError} from './rest/RestError';
-import {Utils} from './TUtils/Utils';
-import * as Intents from './Intents';
-import { UserPresence } from './structures/User';
-import { Activity } from './Data/Activity';
+import { Gateway } from './gateway/Gateway'
+import { restAPI } from './rest/restAPI';
+import { RestError } from './rest/RestError';
+import { Utils } from './TUtils/Utils';
+import { ClientUser } from './structures/ClientUser';
+import { CLIENT_USER, GATEWAY_GET_URL } from './rest/EndPoint';
+import EventEmitter from './EventEmitter/Emitter';
+import { Collection } from './TUtils/Collection';
+import { Snowflake } from 'discord-api-types';
+import { User } from './structures/User';
 
 interface ClientSettings{
     isABot;
     setAllToCache: boolean;
 }
 
-export class Client {
+export class Client extends EventEmitter<{
+    /** the event when the client is ready */
+    ready;
+
+    /** the event when the client receive data packet */
+    rawWs;
+
+    }>{
+
     private _token: string;
-
     public intents: number;
-
     public isABot: boolean = true;
-
     public setAllToCache: boolean = false; 
-
-    public presence?: UserPresence;
-
-    private readonly _restAPI: restAPI;
-
-    private readonly _gateway: Gateway;
+    public user: ClientUser;
+    public users: Collection<Snowflake, User>;
+    public readonly restAPI: restAPI;
+    public readonly gateway: Gateway;
 
     constructor(token: string, intents: number[], clientsettings?: ClientSettings){
+        super()
         this._token = 'Bot ' + token;
-        this._restAPI = new restAPI(this)
-        this._gateway = new Gateway(this)
+        this.restAPI = new restAPI(this);
+        this.gateway = new Gateway(this);
+        this.restAPI.sendRequest('GET', CLIENT_USER).then(r => {
+            this.user = new ClientUser(this, r)
+        })
 
         if(Utils.hasDuplicates(intents)) throw new Error('Duplicates intents are not allowed.')
 
@@ -54,55 +63,11 @@ export class Client {
         return this._token;
     }
 
-    get restAPI(){
-        return this._restAPI;
-    }
-
     public connect(){
-        this._restAPI.sendRequest('GET', '/gateway/bot').then((request) => {
+        this.restAPI.sendRequest('GET', GATEWAY_GET_URL).then((request) => {
             if(request instanceof RestError && request.code == 403) throw new Error('An invalid token was provided!')
 
-            this._gateway.connect(request.url)
+            this.gateway.connect(request.url)
         })
-    }
-
-    public setPresence(status: 'online' | 'offline' | 'dnd' | 'idle' | 'invisible', activities: Activity[], since?: number, afk?: boolean) :any{
-        var statusType: PresenceUpdateStatus;
-
-        switch(status){
-            case 'online':
-                statusType = PresenceUpdateStatus.Online
-                break;
-            case 'offline':
-                statusType = PresenceUpdateStatus.Offline
-                break;
-            case 'dnd':
-                statusType = PresenceUpdateStatus.DoNotDisturb
-                break;
-            case 'idle':
-                statusType = PresenceUpdateStatus.Idle
-                break;
-            case 'invisible':
-                statusType = PresenceUpdateStatus.Invisible
-                break;
-        }
-
-        if(!since) since = Date.now()
-        if(!afk){
-            if(statusType == PresenceUpdateStatus.Idle){
-                afk = true
-            } else{
-                afk = false
-            }
-        }
-
-        var data: UserPresence = {
-            since: since,
-            status: statusType,
-            afk: afk,
-            activities: activities
-        }
-
-        return this.presence = data;
     }
 }

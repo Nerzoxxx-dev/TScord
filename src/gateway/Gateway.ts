@@ -3,10 +3,11 @@ import {GATEWAY_BASE_URL, GATEWAY_ENCODING, GATEWAY_VERSION} from "../rest/EndPo
 import {GatewayDispatchPayload} from "discord-api-types";
 import {HELLO, HEARTBEAT, 
         HEARTBEAT_ACK, GATEWAY_IDENTIFY, 
-        DISPATCH, READY} from './OPCodes';
+        DISPATCH, READY, PRESENCE_UPDATE} from './OPCodes';
 import WebSocket = require('ws')
 import { GatewayIdentifyData } from "../Data/GatewayIdentify";
 import { GatewayPayload } from "../Data/GatewayPayload";
+import { UserPresence } from "../structures/User";
 
 export class Gateway {
 
@@ -43,12 +44,12 @@ export class Gateway {
                 $device: "ts-scord"
             }
         }
-        if(this._client.presence){
-            this._client.presence.activities.forEach((a) => {
+        if(this._client.user.presence){
+            this._client.user.presence.activities.forEach((a) => {
                 if(!a.created_at) a.created_at = Date.now();
             })
         }
-        data.presence = this._client.presence;
+        data.presence = this._client.user.presence;
         
         this.sendToWS(GATEWAY_IDENTIFY, data)
     }
@@ -62,10 +63,18 @@ export class Gateway {
     }
 
     public handleEvent(message: GatewayDispatchPayload){
+        this._client.emit('rawWs', {
+            name: message.t,
+            data: message.d
+        })
         switch(message.t){
             case READY:
                 //ToDo: Use event function
                 console.log('ready!')
+                this._client.emit('ready', {
+                    name: message.t,
+                    data: message.d
+                })
                 break;
         }
     }
@@ -110,5 +119,9 @@ export class Gateway {
     private sendToWS(code: number, data?: any){
         if(!this._ws) return;
         this._ws.send(JSON.stringify({op: code, d: data})) 
+    }
+
+    public updatePresence(d: UserPresence){
+        this.sendToWS(PRESENCE_UPDATE, d) 
     }
 }
