@@ -28,9 +28,12 @@ export class Client extends EventEmitter<{
     public isABot: boolean = true;
     public setAllToCache: boolean = false; 
     public user: ClientUser;
-    public users: Collection<Snowflake, User>;
     public readonly restAPI: restAPI;
     public readonly gateway: Gateway;
+
+    //cache
+    public users: Collection<Snowflake, User>;
+    public guilds: Collection<Snowflake, User>;
 
     constructor(token: string, intents: number[], clientsettings?: ClientSettings){
         super()

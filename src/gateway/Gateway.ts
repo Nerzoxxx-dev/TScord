@@ -8,20 +8,17 @@ import WebSocket = require('ws')
 import { GatewayIdentifyData } from "../Data/GatewayIdentify";
 import { GatewayPayload } from "../Data/GatewayPayload";
 import { UserPresence } from "../structures/User";
+import { ready } from "./Events/ready";
 
 export class Gateway {
 
-    private _ws?: WebSocket;
-
+    private _ws?: WebSocket | null = null;
     private _isEnabled: boolean;
-
-    private _heartbeat_interval: number;
-
+    private _heartbeat_interval?: number;
     private _last_heartbeat?: number;
-
     private _last_heartbeat_ack?: number;
-
     private _sequence?: number;
+    private _wsURL?: string;
 
     constructor(private _client: Client){}
 
@@ -55,11 +52,25 @@ export class Gateway {
     }
 
     public connect(wsUrl?: string): void{
-        if(this._isEnabled == true || (this._ws && this._ws.readyState == 1)) throw new Error(`Gateway ERROR: A WebSocket is already enabled!`)
+        if(this._isEnabled == true || (this._ws !== null)) throw new Error(`Gateway ERROR: A WebSocket is already enabled!`)
 
         if(!wsUrl) wsUrl = GATEWAY_BASE_URL;
+
+        this._wsURL = wsUrl;
         
         this.initWs(wsUrl)
+    }
+
+    public reconnect() {
+        this._ws = null;
+        this._isEnabled = false;
+        this._last_heartbeat = undefined;
+        this._last_heartbeat_ack = undefined;
+        this._sequence = undefined;
+        this._wsURL = undefined;
+        this._heartbeat_interval = undefined;
+
+        this.connect()
     }
 
     public handleEvent(message: GatewayDispatchPayload){
@@ -69,8 +80,7 @@ export class Gateway {
         })
         switch(message.t){
             case READY:
-                //ToDo: Use event function
-                console.log('ready!')
+                new ready(this._client).handle()
                 this._client.emit('ready', {
                     name: message.t,
                     data: message.d
@@ -109,11 +119,20 @@ export class Gateway {
     }
 
     private onWsError(error) {
-        throw new Error(error)
+        console.log(error)
     }
 
     private onWsClose(code: number, reason: string): void {
-        throw new Error(`Gateway ERROR: ${code} => ${reason}`);
+        switch(code) {
+            case 4008:
+                setTimeout(() => {
+                    this.reconnect()
+                }, 5000)
+                console.log('Rate limited => reconnection...')
+                break;
+            default:
+                throw new Error(`Gateway ERROR: ${code} => ${reason}`);
+        }
     }
 
     private sendToWS(code: number, data?: any){

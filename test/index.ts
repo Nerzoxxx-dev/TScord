@@ -12,7 +12,7 @@ class test {
 
         client.on('ready', (ready) => {
             console.log('ready!')
-            client.user.setPresence('dnd', [{name: "test", type: 0}])
+            client.user.setActivity([{name: 'test', type: 0}])
         })
         var r = await client.restAPI.sendRequest('get', `/users/691618793696264194`);
         var u = new User(client, r);

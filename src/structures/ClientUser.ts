@@ -1,4 +1,4 @@
-import { APIUser, PresenceUpdateStatus } from "discord-api-types";
+import { ActivityType, APIUser, PresenceUpdateStatus } from "discord-api-types";
 import { Client } from "../Client";
 import { Activity } from "../Data/Activity";
 import { CLIENT_USER } from "../rest/EndPoint";
@@ -50,7 +50,20 @@ export class ClientUser extends User {
             activities: activities
         }
 
+        this.presence = data;
         this.client.gateway.updatePresence(data)
+    }
+
+    public setActivity(activities: Activity[]){
+        if(!this.presence) this.presence = {
+            since: Date.now(),
+            status: PresenceUpdateStatus.Offline,
+            afk: false,
+            activities: activities
+        }
+        else this.presence.activities = activities
+
+        this.client.gateway.updatePresence(this.presence)
     }
 
     async init(){

@@ -1,5 +1,5 @@
 import {Base} from './Base';
-import {Snowflake} from '../TUtils/Snowflake';
+import {getDate, Snowflake} from '../TUtils/Snowflake';
 import { APIUser, UserFlags, UserPremiumType } from 'discord-api-types';
 import {Client} from '../Client';
 import {Activity} from '../Data/Activity';
@@ -34,6 +34,8 @@ export class User extends Base {
     public premium_type: UserPremiumType;
     /** The user's public Flags */
     public public_flags: UserFlags;
+    /** The date of the creation of the user's account */
+    public created_at: number;
 
     constructor(client: Client, api: APIUser){
         super(client);
@@ -55,6 +57,7 @@ export class User extends Base {
         this.flags = api.flags;
         this.premium_type = api.premium_type;
         this.public_flags = api.public_flags;
+        this.created_at = Date.parse(getDate(this.id).toString())
     }
 
     public getAvatarUrl(): string | null {

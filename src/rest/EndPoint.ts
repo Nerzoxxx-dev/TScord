@@ -6,6 +6,7 @@ export const GATEWAY_ENCODING = 'json';
 export const CDN_URL = "https://cdn.discordapp.com";
 export const GATEWAY_GET_URL = "/gateway/bot";
 
+export const GUILDS = "/guilds";
 export const CLIENT_USER = "/users/@me"
 
 export const AVATAR_URL = (user_id, user_avatar) => `${CDN_URL}/avatars/${user_id}/${user_avatar}.png`
