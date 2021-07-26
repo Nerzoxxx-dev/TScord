@@ -3,7 +3,7 @@ import { restAPI } from './rest/restAPI';
 import { RestError } from './rest/RestError';
 import { Utils } from './TUtils/Utils';
 import { ClientUser } from './structures/ClientUser';
-import { CLIENT_USER, GATEWAY_GET_URL } from './rest/EndPoint';
+import { CLIENT_USER, GATEWAY_GET_URL, GUILD, USER } from './rest/EndPoint';
 import EventEmitter from './EventEmitter/Emitter';
 import { Collection } from './TUtils/Collection';
 import { Snowflake } from 'discord-api-types';
@@ -77,11 +77,15 @@ export class Client extends EventEmitter<{
         })
     }
 
-    public fetchUser(id: Snowflake){
-        return this.users.fetch(id)
+    public async fetchUser(id: Snowflake){
+        let u = new User(this, await this.restAPI.fetchUserObject(id))
+        if(!this.users.has(u.id)) this.users.set(u.id, u)
+        return u
     }
 
-    public fetchGuilds(id: Snowflake){
-        return this.guilds.fetch(id)
+    public async fetchGuild(id: Snowflake){
+        let g = new Guild(this, await this.restAPI.fetchGuildObject(id))
+        if(!this.guilds.has(g.id)) this.guilds.set(g.id, g)
+        return g
     }
 }

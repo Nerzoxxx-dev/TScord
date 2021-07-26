@@ -1,7 +1,8 @@
 import axios, {AxiosInstance, Method} from 'axios';
 import { Client } from '../Client';
 import { User } from '../structures/User';
-import {AVATAR_URL, REST_BASE_URL} from './EndPoint';
+import { Snowflake } from '../TUtils/Snowflake';
+import {AVATAR_URL, GUILD, REST_BASE_URL, USER} from './EndPoint';
 import {RestError} from './RestError';
 
 
@@ -28,5 +29,14 @@ export class restAPI{
             if(response) resolve(response.data)
             else reject(new Error('No response from api'))
         })
+    }
+
+
+    public fetchUserObject(id: Snowflake){
+        return this._client.restAPI.sendRequest('GET', USER(id))
+    }
+
+    public fetchGuildObject(id: Snowflake){
+        return this._client.restAPI.sendRequest('GET', GUILD(id))
     }
 }

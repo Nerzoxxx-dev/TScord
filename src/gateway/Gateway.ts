@@ -1,5 +1,5 @@
 import { Client } from "../Client";
-import {GATEWAY_BASE_URL, GATEWAY_ENCODING, GATEWAY_VERSION} from "../rest/EndPoint";
+import {GATEWAY_BASE_URL, GATEWAY_ENCODING, GATEWAY_VERSION, GUILD, USER} from "../rest/EndPoint";
 import {GatewayDispatchPayload} from "discord-api-types";
 import {HELLO, HEARTBEAT, 
         HEARTBEAT_ACK, GATEWAY_IDENTIFY, 
@@ -9,6 +9,7 @@ import { GatewayIdentifyData } from "../Data/GatewayIdentify";
 import { GatewayPayload } from "../Data/GatewayPayload";
 import { UserPresence } from "../structures/User";
 import { ready } from "./Events/ready";
+import { Snowflake } from "../TUtils/Snowflake";
 
 export class Gateway {
 
@@ -127,7 +128,7 @@ export class Gateway {
             case 4008:
                 setTimeout(() => {
                     this.reconnect()
-                }, 5000)
+                }, 10000)
                 console.log('Rate limited => reconnection...')
                 break;
             default:

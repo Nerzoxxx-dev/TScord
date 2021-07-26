@@ -10,11 +10,12 @@ class test {
 
         client.connect()
 
-        client.on('ready', (ready) => {
+        client.on('ready', async(ready) => {
             console.log('ready!')
             client.user.setActivity([{name: 'test', type: 0}])
             console.log(client.guilds)
-            console.log(client.guilds.fetch('869219983509573662'))
+            console.log(await client.fetchUser('691618793696264194'))
+            console.log(client.users)
         })
     }
 }

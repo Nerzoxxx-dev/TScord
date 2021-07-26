@@ -65,8 +65,4 @@ export class ClientUser extends User {
 
         this.client.gateway.updatePresence(this.presence)
     }
-
-    async init(){
-        return await this.client._restAPI.sendRequest('GET', CLIENT_USER);
-    }
 }
