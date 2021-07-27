@@ -3,13 +3,13 @@ import {GATEWAY_BASE_URL, GATEWAY_ENCODING, GATEWAY_VERSION, GUILD, USER} from "
 import {GatewayDispatchPayload} from "discord-api-types";
 import {HELLO, HEARTBEAT, 
         HEARTBEAT_ACK, GATEWAY_IDENTIFY, 
-        DISPATCH, READY, PRESENCE_UPDATE} from './OPCodes';
+        DISPATCH, READY, PRESENCE_UPDATE, RESUME} from './OPCodes';
 import WebSocket = require('ws')
 import { GatewayIdentifyData } from "../Data/GatewayIdentify";
 import { GatewayPayload } from "../Data/GatewayPayload";
 import { UserPresence } from "../structures/User";
 import { ready } from "./Events/ready";
-import { Snowflake } from "../TUtils/Snowflake";
+import { GatewayException } from "../Exceptions/GatewayException";
 
 export class Gateway {
 
@@ -20,6 +20,8 @@ export class Gateway {
     private _last_heartbeat_ack?: number;
     private _sequence?: number;
     private _wsURL?: string;
+    private _session_id?: string;
+    public ping?: number;
 
     constructor(private _client: Client){}
 
@@ -52,17 +54,17 @@ export class Gateway {
         this.sendToWS(GATEWAY_IDENTIFY, data)
     }
 
-    public connect(wsUrl?: string): void{
-        if(this._isEnabled == true || (this._ws !== null)) throw new Error(`Gateway ERROR: A WebSocket is already enabled!`)
+    public async connect(wsUrl?: string){
+        if(this._isEnabled == true || (this._ws !== null)) return new Error(`Gateway ERROR: A WebSocket is already enabled!`)
 
         if(!wsUrl) wsUrl = GATEWAY_BASE_URL;
 
         this._wsURL = wsUrl;
-        
-        this.initWs(wsUrl)
+            
+        await this.initWs(wsUrl)
     }
 
-    public reconnect() {
+    public async reconnect() {
         this._ws = null;
         this._isEnabled = false;
         this._last_heartbeat = undefined;
@@ -71,17 +73,21 @@ export class Gateway {
         this._wsURL = undefined;
         this._heartbeat_interval = undefined;
 
-        this.connect()
+        await this.connect()
+         setTimeout(() => {
+            this.sendToWS(RESUME, {token: this._client.token, session_id: this._session_id, seq: this._sequence})
+         }, 2000)
     }
 
-    public handleEvent(message: GatewayDispatchPayload){
+    public async handleEvent(message: GatewayDispatchPayload){
         this._client.emit('rawWs', {
             name: message.t,
             data: message.d
         })
         switch(message.t){
             case READY:
-                new ready(this._client).handle(message)
+                this._session_id = message.d.session_id;
+                await new ready(this._client).handle(message)
                 this._client.emit('ready', {
                     name: message.t,
                     data: message.d
@@ -97,6 +103,7 @@ export class Gateway {
         this._ws.on('message', (msg) => this.onWsMessage(msg as string))
         this._ws.on('error', (error) => this.onWsError(error))
         this._ws.on('close', (code, reason) => this.onWsClose(code, reason))
+        this._isEnabled = true;
     }
 
     private onWsOpen() {
@@ -113,6 +120,7 @@ export class Gateway {
                 break;
             case HEARTBEAT_ACK:
                 this._last_heartbeat_ack = Date.now();
+                this.ping = this._last_heartbeat_ack - this._last_heartbeat;
                 break;
             case DISPATCH:
                 this.handleEvent(message as GatewayDispatchPayload)
@@ -120,20 +128,11 @@ export class Gateway {
     }
 
     private onWsError(error) {
-        console.log(error)
+        throw new GatewayException('Gateway ERROR', error)
     }
 
     private onWsClose(code: number, reason: string): void {
-        switch(code) {
-            case 4008:
-                setTimeout(() => {
-                    this.reconnect()
-                }, 10000)
-                console.log('Rate limited => reconnection...')
-                break;
-            default:
-                throw new Error(`Gateway ERROR: ${code} => ${reason}`);
-        }
+        this.reconnect()
     }
 
     private sendToWS(code: number, data?: any){

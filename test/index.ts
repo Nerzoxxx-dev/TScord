@@ -1,7 +1,5 @@
-import * as ActivityTypes from '../src/Data/ActivityTypes';
 import {Client} from '../src/Client';
 import * as Intents from '../src/Intents';
-import { User } from '../src/structures/User';
 require('dotenv').config()
 
 class test {
@@ -13,9 +11,8 @@ class test {
         client.on('ready', async(ready) => {
             console.log('ready!')
             client.user.setActivity([{name: 'test', type: 0}])
-            console.log(client.guilds)
-            console.log(await client.fetchUser('691618793696264194'))
-            console.log(client.users)
+
+            client.guilds.get('869219983509573662').channels_cache.get('869219983509573665').sendMessage('test')
         })
     }
 }

@@ -10,11 +10,8 @@ export class Collection<K, V> extends Map<K, V>{
     }
 
     public set(k:K, v:V) :any{
-
         if(this.has(k)) this.delete(k)
-
         super.set(k, v)
-
     }
 
     public fetch(k: K){

@@ -1,18 +1,19 @@
 import { Gateway } from './gateway/Gateway'
 import { restAPI } from './rest/restAPI';
-import { RestError } from './rest/RestError';
+import { RestError } from './Exceptions/RestException';
 import { Utils } from './TUtils/Utils';
 import { ClientUser } from './structures/ClientUser';
-import { CLIENT_USER, GATEWAY_GET_URL, GUILD, USER } from './rest/EndPoint';
+import { CLIENT_USER, GATEWAY_GET_URL, GUILD, MESSAGES, USER } from './rest/EndPoint';
 import EventEmitter from './EventEmitter/Emitter';
 import { Collection } from './TUtils/Collection';
 import { Snowflake } from 'discord-api-types';
 import { User } from './structures/User';
 import { Guild } from './structures/Guild';
+import { MSGOptionsWithContent } from './structures/Message';
+import { MessageOptions } from 'node:child_process';
 
 interface ClientSettings{
     isABot;
-    setAllToCache: boolean;
 }
 
 export class Client extends EventEmitter<{
@@ -59,14 +60,15 @@ export class Client extends EventEmitter<{
             if(clientsettings.isABot){
                 this.isABot = clientsettings.isABot;
             }
-            if(clientsettings.setAllToCache){
-                this.setAllToCache = clientsettings.setAllToCache;
-            }
         }
     }
 
     get token(): string{
         return this._token;
+    }
+
+    get ping(): number{
+        return this.gateway.ping;
     }
 
     public connect(){
@@ -87,5 +89,13 @@ export class Client extends EventEmitter<{
         let g = new Guild(this, await this.restAPI.fetchGuildObject(id))
         if(!this.guilds.has(g.id)) this.guilds.set(g.id, g)
         return g
+    }
+
+    public async createMessage(id: Snowflake, content: string | MSGOptionsWithContent, option?: MessageOptions){
+        if(typeof content == "string") {
+            this.restAPI.sendRequest('POST', MESSAGES(id), {content: content, options: option})
+        }else {
+            this.restAPI.sendRequest('POST', MESSAGES(id), content as Object)
+        }
     }
 }

@@ -1,7 +1,9 @@
-import { APIChannel, APIEmoji, APIGuild,APIGuildMember, APIGuildWelcomeScreen, APIRole, GatewayPresenceUpdate, GatewayVoiceState, GuildDefaultMessageNotifications, GuildExplicitContentFilter, GuildFeature, GuildMFALevel, GuildPremiumTier, GuildSystemChannelFlags, GuildVerificationLevel } from "discord-api-types";
+import { APIChannel, APIEmoji, APIGuild,APIGuildMember, APIGuildWelcomeScreen, APIRole, ChannelType, GatewayPresenceUpdate, GatewayVoiceState, GuildDefaultMessageNotifications, GuildExplicitContentFilter, GuildFeature, GuildMFALevel, GuildPremiumTier, GuildSystemChannelFlags, GuildVerificationLevel } from "discord-api-types";
 import { Client } from "../Client";
 import { Collection } from "../TUtils/Collection";
 import { Snowflake } from '../TUtils/Snowflake'
+import { ChannelTypes } from "./Channels/Channel";
+import { TextChannel } from "./Channels/TextChannel";
 import { User } from "./User";
 
 export class Guild {
@@ -102,7 +104,7 @@ export class Guild {
 
     //Caches
     public emojis_cache: Collection<Snowflake, APIEmoji>;
-    public channels_cache: Collection<Snowflake, APIChannel>;
+    public channels_cache: Collection<Snowflake, TextChannel>;
     public members_cache: Collection<Snowflake, User>;
 
     constructor(private _client: Client, private _data: APIGuild){
@@ -159,7 +161,7 @@ export class Guild {
         this.id = this._data.id
 
         this.emojis_cache = new Collection<Snowflake, APIEmoji>()
-        this.channels_cache = new Collection<Snowflake, APIChannel>()
-        this.members_cache = new Collection<Snowflake, User>()
+        this.channels_cache = new Collection<Snowflake, TextChannel>()
+        this.members_cache = new Collection<Snowflake, User>();
     }
 }

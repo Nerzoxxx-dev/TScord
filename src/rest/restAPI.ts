@@ -3,7 +3,7 @@ import { Client } from '../Client';
 import { User } from '../structures/User';
 import { Snowflake } from '../TUtils/Snowflake';
 import {AVATAR_URL, GUILD, REST_BASE_URL, USER} from './EndPoint';
-import {RestError} from './RestError';
+import {RestError} from '../Exceptions/RestException';
 
 
 export class restAPI{
